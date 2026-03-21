@@ -31,28 +31,28 @@ class Read : CRUDCONNECTION {
 public:
     Read(Database& database) : CRUDCONNECTION(&database) {}
 
-    void readTable(string tableName) {
+    Table readTable(string tableName, vector<string> headers) { // TODO add where stuff, order by, etc..
         Table& table = this->database->getTable(tableName);
-        for (int i = 0; i < table.getTableData().size(); i++) {
-            for (int j = 0; j < table.getTableData()[i].getRowData().size(); j++) {
-                cout << table.getTableData()[i].getRowData()[j].getValue() << " ";
+        Table retTable(headers, "RESPONSE");
+        vector<Row> dummyrows = {Row(headers)};
+
+        for (int i = 1; i < table.getTableData().size(); i++) {
+            int x = 0;
+            vector<string> rowdata;
+            for (int j = 0; j < table.getTableData()[i].getRowData().size(); j++) { // Direction concern
+                if (table.getTableData()[0].getRowData()[j].getValue() == headers[x]) {
+                    rowdata.push_back(table.getTableData()[i].getRowData()[j].getValue());
+                    if (x < headers.size() - 1) {
+                        x++;
+                    }
+                }
             }
-
-            cout << endl;
+            dummyrows.push_back(Row(rowdata));
         }
+
+        retTable.setTableData(dummyrows);
+        return retTable;
     }
-
-    void readEntireDatabase() {
-        for (int i = 0; i < this->database->getDatabaseData().size(); i++) {
-            cout << "NAME: " << this->database->getDatabaseData()[i].getTableName() << endl;
-            cout << "---" << endl;
-
-            readTable(this->database->getDatabaseData()[i].getTableName());
-
-            cout << "---" << endl;
-        }
-    }
-
 };
 
 class Update : CRUDCONNECTION {
@@ -60,6 +60,16 @@ public:
     Update(Database& database) : CRUDCONNECTION(&database) {}
 
     void addRow(string tableName, vector<string> row) {
+        if (row.size() > this->database->getTable(tableName).getTableData()[0].getRowData().size()) {
+            while(row.size() > this->database->getTable(tableName).getTableData()[0].getRowData().size()) {
+                row.pop_back();
+            }
+        } else if (row.size() < this->database->getTable(tableName).getTableData()[0].getRowData().size()) {
+            while(row.size() < this->database->getTable(tableName).getTableData()[0].getRowData().size()) {
+                row.push_back("NULL");
+            }
+        }
+
         this->database->getTable(tableName).getTableData().push_back(Row(row));
     }
 };
@@ -69,21 +79,25 @@ public:
     Delete(Database& database) : CRUDCONNECTION(&database) {}
 
     void deleteRow(string tableName) {
-        this->database->getTable(tableName).getTableData().pop_back();
+        if (this->database->getTable(tableName).getTableData().size() >= 2) {
+            this->database->getTable(tableName).getTableData().pop_back();
+        }
     }
 
     void deleteRow(string tableName, int k) {
         Table& table = this->database->getTable(tableName);
         vector<Row> dummy;
 
-        for (int i = 0; i < table.getTableData().size(); i++) {
-            if (i == k) {
-                continue;
+        if (table.getTableData().size() >= 2) {
+            for (int i = 0; i < table.getTableData().size(); i++) {
+                if (i == k) {
+                    continue;
+                }
+
+                dummy.push_back(table.getTableData()[i]);
             }
 
-            dummy.push_back(table.getTableData()[i]);
+            table.getTableData() = dummy;
         }
-
-        table.getTableData() = dummy;
     }
 };

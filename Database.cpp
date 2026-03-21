@@ -260,6 +260,10 @@ public:
         return this->databaseData;
     }
 
+    Table& getNullTable() {
+        return this->nullTbl;
+    }
+
     void setDatabaseData(vector<Table> databaseData) {
         this->databaseData = databaseData;
     }

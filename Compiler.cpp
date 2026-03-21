@@ -15,7 +15,7 @@ DELROW (k) in TABLE_NAME
 
 DELROW () in TABLE_NAME
 
-READ () in TABLE_NAME
+READ (h1, h2, ...) in TABLE_NAME
 
 
 SYNTAXER:
@@ -80,27 +80,37 @@ struct Query {
     vector<string> source;
     string destination;
 
+    Table* nullTbl;
     Create* create;
     Read* read;
     Update* update;
     Delete* del;
 
     Query(Database& db) {
+        nullTbl = &(db.getNullTable());
         create = new Create(db);
         read = new Read(db);
         update = new Update(db);
         del = new Delete(db);
     }
 
-    void runQuery() {
+    Table runQuery() {
         if (action == "create") {
             create->createTable(destination, source);
+            return *(this->nullTbl);
         } else if (action == "addrow") {
             update->addRow(destination, source);
+            return *(this->nullTbl);
         } else if (action == "delrow") {
-            del->deleteRow(destination);
-        } else if (action == "read") {
+            if (source[0] == "") {
+                del->deleteRow(destination);
+            } else {
+                del->deleteRow(destination, stoi(source[0]));
+            }
 
+            return *(this->nullTbl);
+        } else if (action == "read") {
+            return read->readTable(destination, source);
         }
     }
 };
@@ -129,7 +139,7 @@ public:
         dfa.transitions = vector<int>{0, 0, 1,  0, 0, 1};
     }
 
-    void runLexer(Database& database, string queries) {
+    void runLexer(Database& database, string queries, vector<Table>& READRESPONSE) {
         vector<string> wordList = {""};
 
         parseString(queries);
@@ -181,7 +191,9 @@ public:
             }
 
             for (auto x: queriesVec) {
-                x.runQuery();
+                if (x.runQuery().getTableName() != "NULL_TABLE") {
+                    READRESPONSE.push_back(x.runQuery());
+                }
             }
         } else {
             cout << "SYNTAX ERROR";
