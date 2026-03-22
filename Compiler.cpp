@@ -15,7 +15,7 @@ DELROW (k) in TABLE_NAME
 
 DELROW () in TABLE_NAME
 
-READ (h1, h2, ...) in TABLE_NAME
+READ (h1, h2, ...) in TABLE_NAME where (x,y,z) orderby (ascending)
 
 
 SYNTAXER:
@@ -79,6 +79,8 @@ struct Query {
     string action;
     vector<string> source;
     string destination;
+    string where;
+    string orderby;
 
     Table* nullTbl;
     Create* create;
@@ -110,7 +112,7 @@ struct Query {
 
             return *(this->nullTbl);
         } else if (action == "read") {
-            return read->readTable(destination, source);
+            return read->readTable(destination, source, where, orderby);
         }
     }
 };
@@ -140,63 +142,87 @@ public:
     }
 
     void runLexer(Database& database, string queries, vector<Table>& READRESPONSE) {
-        vector<string> wordList = {""};
+        vector<vector<string>> wordList;
 
-        parseString(queries);
-        for (int i = 0; i < queries.length(); i++) {
-            // State update
-            if (queries[i] == ' ') {
-                dfa.UpdateState(0);
-            } else if (queries[i] == ';') {
-                dfa.UpdateState(1);
+        parseString(queries);   
+        vector<string> temp = {""};
+        for (auto x: queries) {
+            if (x == ';') {
+                temp.push_back("");
             } else {
-                dfa.UpdateState(2);
+                temp[temp.size() - 1] += x;
             }
+        }
+        temp.pop_back();
 
-            // Collect/Append char based on state
-            if (dfa.currentState == 0 && wordList[wordList.size() - 1] != "") {
-                wordList.push_back("");
-            } else if (dfa.currentState == 1) {
-                wordList[wordList.size() - 1] = wordList[wordList.size() - 1] + queries[i];
-            }
+        for (int k = 0; k < temp.size(); k++) {
+            wordList.push_back({""});
+            for (int i = 0; i < temp[k].length(); i++) {
+                // State update
+                if (temp[k][i] == ' ') {
+                    dfa.UpdateState(0);
+                } else if (temp[k][i] == ';') {
+                    dfa.UpdateState(1);
+                } else {
+                    dfa.UpdateState(2);
+                }
 
-            // EDGE CASE: last word
-            if (i == queries.length() - 1 && wordList[wordList.size() - 1] == "") {
-                wordList.pop_back();
+                // Collect/Append char based on state
+                if (dfa.currentState == 0 && wordList[wordList.size() - 1][wordList[wordList.size() - 1].size() - 1] != "") {
+                    wordList[wordList.size() - 1].push_back("");
+                } else if (dfa.currentState == 1) {
+                    wordList[wordList.size() - 1][wordList[wordList.size() - 1].size() - 1] += temp[k][i];
+                }
+
+                // EDGE CASE: last word
+                if (i == queries.length() - 1 && wordList[wordList.size() - 1][wordList[wordList.size() - 1].size() - 1] == "") {
+                    wordList[wordList.size() - 1].pop_back();
+                }
             }
         }
 
         vector<Query> queriesVec;
         Query dummy(database);
-        removeIn(wordList);
+        for (auto& x: wordList) {
+            removeIn(x);
+        }
 
         // Build queries and verify legality, run
-        if (wordList.size() % 3 == 0) {
-            for (int i = 0; i < wordList.size(); i++) {
-                dummy.action = retToLower(wordList[i]);
-                dummy.destination = wordList[i + 2];
+        for (int k = 0; k < wordList.size(); k++) {
+            dummy.action = retToLower(wordList[k][0]);
+            dummy.destination = wordList[k][2];
 
-                vector<string> dummytemp = {""};
-                for (int j = 0; j < wordList[i + 1].length(); j++) {
-                    if (wordList[i+1][j] == ',' && dummytemp[dummytemp.size() - 1] != "") {
-                        dummytemp.push_back("");
-                    } else if (wordList[i+1][j] != '(' && wordList[i+1][j] != ')') {
-                        dummytemp[dummytemp.size() - 1] += wordList[i+1][j];
+            vector<string> dummytemp = {""};
+            for (int j = 0; j < wordList[k][1].length(); j++) {
+                if (wordList[k][1][j] == ',' && dummytemp[dummytemp.size() - 1] != "") {
+                    dummytemp.push_back("");
+                } else if (wordList[k][1][j] != '(' && wordList[k][1][j] != ')') {
+                    dummytemp[dummytemp.size() - 1] += wordList[k][1][j];
+                }
+            }
+            dummy.source = dummytemp;
+
+            if (wordList[k].size() >= 4 && retToLower(dummy.action) == "read") {
+                int m = wordList[k].size() - 3;
+                while (m) {
+                    if (retToLower(wordList[k][2 + m - 1]) == "where") {
+                        dummy.where = wordList[k][2 + m];
+                        m -= 2;
+                    } else if (retToLower(wordList[k][2 + m - 1]) == "orderby") {
+                        dummy.orderby = wordList[k][2 + m];
+                        m -= 2;
                     }
                 }
-                dummy.source = dummytemp;
-
-                queriesVec.push_back(dummy);
-                i += 2;
             }
 
-            for (auto x: queriesVec) {
-                if (x.runQuery().getTableName() != "NULL_TABLE") {
-                    READRESPONSE.push_back(x.runQuery());
-                }
+            queriesVec.push_back(dummy);
+        }
+
+        for (auto x: queriesVec) {
+            cout << x.action;
+            if (x.runQuery().getTableName() != "NULL_TABLE") {
+                READRESPONSE.push_back(x.runQuery());
             }
-        } else {
-            cout << "SYNTAX ERROR";
         }
     }
 
