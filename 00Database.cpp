@@ -49,43 +49,17 @@ bool isDATETIME(string value) {
     return isDatetime;
 }
 
-bool isDURATION(string value) {
-    bool isDuration = true;
-    vector<char> FORMAT = {'H', 'H', '-', 'M', 'M', '-', 'S', 'S'};
-
-    for (int i = 0; i < FORMAT.size(); i++) {
-        switch(FORMAT[i]) {
-            case 'H':
-                if (!isNUMBER(value[i])) isDuration = false;
-                break;
-            case 'M':
-                    if (!isNUMBER(value[i])) isDuration = false;
-                break;
-            case 'S':
-                if (!isNUMBER(value[i])) isDuration = false;
-                break;
-            case '-':
-                if (value[i] != '-') {
-                    isDuration = false;
-                }
-                break;
-        }
-    }
-
-    return isDuration;
-}
-
 class DataType {
 protected:
     string value;
     string type;
 
 public:
-    string getValue() {
+    string getValue() const {
         return this->value;
     }
 
-    string getType() {
+    string getType() const {
         return this->type;
     }
 
@@ -154,28 +128,6 @@ public:
     }
 };
 
-class DURATION: public DataType {
-public:
-    DURATION() {
-        this->value = "00-00-00";
-        this->type = "DURATION";
-    }
-
-    DURATION(string value) {
-        if (isDURATION(value)) {
-            this->value = value;
-            this->type = "DURATION";
-        } else {
-            cout << "ERROR WRONG DURATION TYPE";
-        }
-    }
-
-    DURATION(DURATION* obj) {
-        this->value = obj->getValue();
-        this->type = "DURATION";
-    }
-};
-
 class Cell {
     DataType* data;
 
@@ -185,14 +137,12 @@ public:
     }
 
     Cell(const Cell& other) {
-        if (other.getData()->getType() == "VARCHAR") {
-            this->data = new VARCHAR(other.getData()->getValue());
-        } else if (other.getData()->getType() == "NUMBER") {
-            this->data = new NUMBER(other.getData()->getValue());
-        } else if (other.getData()->getType() == "DATETIME") {
-            this->data = new DATETIME(other.getData()->getValue());
-        }  else if (other.getData()->getType() == "DURATION") {
-            this->data = new DURATION(other.getData()->getValue());
+        if (other.getDataType() == "VARCHAR") {
+            this->data = new VARCHAR(other.getValue());
+        } else if (other.getDataType() == "NUMBER") {
+            this->data = new NUMBER(other.getValue());
+        } else if (other.getDataType() == "DATETIME") {
+            this->data = new DATETIME(other.getValue());
         }
     }
 
@@ -201,8 +151,6 @@ public:
             this->data = new DATETIME(value);
         } else if (isNUMBER(value)) {
             this->data = new NUMBER(value);
-        } else if (isDURATION(value)) {
-            this->data = new DURATION(value);
         } else {
             this->data = new VARCHAR(value);
         }
@@ -215,29 +163,23 @@ public:
 
         delete this->data;
 
-        if (other.getData()->getType() == "VARCHAR") {
-            this->data = new VARCHAR(other.getData()->getValue());
-        } else if (other.getData()->getType() == "NUMBER") {
-            this->data = new NUMBER(other.getData()->getValue());
-        } else if (other.getData()->getType() == "DATETIME") {
-            this->data = new DATETIME(other.getData()->getValue());
-        }  else if (other.getData()->getType() == "DURATION") {
-            this->data = new DURATION(other.getData()->getValue());
+        if (other.getDataType() == "VARCHAR") {
+            this->data = new VARCHAR(other.getValue());
+        } else if (other.getDataType() == "NUMBER") {
+            this->data = new NUMBER(other.getValue());
+        } else if (other.getDataType() == "DATETIME") {
+            this->data = new DATETIME(other.getValue());
         }
 
         return *this;
     }
 
-    string getValue() {
+    string getValue() const {
         return this->data->getValue();
     }
 
-    DataType* getData() {
-        return this->data;
-    }
-
-    DataType* getData() const {
-        return this->data;
+    string getDataType() const {
+        return this->data->getType();
     }
 
     ~Cell() {
@@ -259,7 +201,7 @@ public:
         this->rowData = auxRowData;
     }
 
-    vector<Cell>& getRowData() {
+    vector<Cell> getRowData() const {
         return this->rowData;
     }
 
@@ -273,15 +215,26 @@ class Table {
     vector<string> tableDataTypes;
     string tableName;
 
-    bool verifyDataTypes(Row tableData) {
-        if (tableDataTypes[0] == "ANY") {
+    bool verifyDataTypes(const vector<Row>& tableData) {
+        if (tableDataTypes[0] == "ANY") { // Escape ANY type
             return true;
         }
 
-        for (int i = 0; i < tableDataTypes.size(); i++) {
-            if (tableDataTypes[i] != tableData.getRowData()[i].getData()->getType()) {
+        for (int i = 1; i < tableData.size(); i++) {
+            for (int j = 0; j < tableData[i].getRowData().size(); j++) {
+                if (tableDataTypes[j] != tableData[i].getRowData()[j].getDataType())
                 return false;
             }
+        }
+
+        return true;
+    }
+
+    bool verifyColumnSize(const vector<Row>& tableData) {
+        for (int i = 1; i < tableData.size(); i++) {
+            if (tableData[0].getRowData().size() != tableData[i].getRowData().size()) 
+            return false;
+
         }
 
         return true;
@@ -294,21 +247,13 @@ public:
         this->tableName = tableName;
     }
 
-    vector<Row>& getTableData() {
+    vector<Row> getTableData() {
         return this->tableData;
     }
 
     void setTableData(vector<Row> tableData) {
-        bool validType = true;
-        bool validColumns = true;
-        
-        for (int i = 1; i < tableData.size(); i++) {
-            if (!this->verifyDataTypes(tableData[i])) validType = false;
-        }
-
-        for (int i = 1; i < tableData.size(); i++) {
-            if (tableData[0].getRowData().size() != tableData[i].getRowData().size()) validColumns = false;
-        }
+        bool validType = verifyDataTypes(tableData);
+        bool validColumns = verifyColumnSize(tableData);
 
         if (validType && validColumns) {
             this->tableData = tableData;
@@ -345,7 +290,7 @@ public:
         return nullptr;
     }
 
-    vector<Table>& getDatabaseData() {
+    vector<Table> getDatabaseData() {
         return this->databaseData;
     }
 

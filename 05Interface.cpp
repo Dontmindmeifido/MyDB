@@ -10,26 +10,7 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "03Interpreter.cpp"
 
-class Util {
-protected:
-    ImVec2 getCursorPosition(string queryBuffer) {
-        int x = 0;
-        int y = 0;
-
-        for (auto chr: queryBuffer) {
-            if (chr == '\n') {
-                y += 20;
-                x = 0;
-            } else {
-                x += 8;
-            }
-        }
-
-        return ImVec2(x, y);
-    }
-};
-
-class Interface : Util {   
+class Interface {   
     static Interface* instance;
 
     std::string queryBuffer{"CREATE (FIRST_NAME: VARCHAR, LAST_NAME: VARCHAR, BIRTHDATE: DATETIME) in MODEL_EMPLOYEES;\nADDROW (John, Cena, 12-12-1999) in MODEL_EMPLOYEES;\nDELROW (1) in MODEL_EMPLOYEES;\nREAD (SURNAME) in EMPLOYEES;"};
@@ -61,7 +42,7 @@ class Interface : Util {
         // Print table IDEA HERE: ADD TYPING SUGGESTIONS LIKE SYNTAX OR TABLE_NAME Suggestsions
         if (selectedTable != -1) {
             ImVec2 cursor = ImGui::GetCursorScreenPos();
-            Table& table = db->getDatabaseData()[selectedTable];
+            Table table = db->getDatabaseData()[selectedTable];
             ImGui::Dummy(ImVec2(0, 20 * (int(table.getTableData().size()))));
             int w = (ImGui::GetIO().DisplaySize.x * 0.5 - 38) / min(10, int(table.getTableData()[0].getRowData().size())); // Soft limit on 10 visible cols
             ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(cursor.x, cursor.y), ImVec2(cursor.x + 20 - 1, cursor.y + 20 - 1), IM_COL32(30, 30, 30, 255));
@@ -81,7 +62,7 @@ class Interface : Util {
                     ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(20 + cursor.x + w*j, cursor.y + 20*i), ImVec2(20 + cursor.x + w*(j + 1) - 1, cursor.y + 20*(i + 1) - 1), IM_COL32(30, 30, 30, 255));
                     if (ImGui::IsMouseHoveringRect(ImVec2(20 + cursor.x + w*j, cursor.y + 20*i), ImVec2(20 + cursor.x + w*(j + 1) - 1, cursor.y + 20*(i + 1) - 1))) {
                         ImGui::BeginTooltip();
-                        ImGui::Text(&((table.getTableData()[0].getRowData()[j].getValue() + ": " + table.getTableData()[i].getRowData()[j].getData()->getType())[0]));
+                        ImGui::Text(&((table.getTableData()[0].getRowData()[j].getValue() + ": " + table.getTableData()[i].getRowData()[j].getDataType())[0]));
                         ImGui::Text(&(("ROW " + to_string(i) + " " + "COL " + to_string(j + 1))[0]));
                         ImGui::EndTooltip();
                     }
@@ -97,7 +78,7 @@ class Interface : Util {
     void EditorWindow(int buttonHeight = 30) {
         Lexer* lexer = Lexer::getInstance();
         Database* db = Database::getInstance();
-        Compiler* compiler = Compiler::getInstance();
+        Interpreter* interpreter = Interpreter::getInstance();
 
         ImVec2 screenSize = ImGui::GetIO().DisplaySize;
         ImGui::SetNextWindowPos(ImVec2(screenSize.x * 0.5f, 0));
@@ -108,7 +89,7 @@ class Interface : Util {
 
 
         // DOES NOT HANDLE TABS
-        vector<string> wordList = lexer->getWords(queryBuffer);
+        vector<string> wordList = lexer->getSpacedWords(queryBuffer);
         for (int i = 0; i < wordList.size(); i++) {
             if (lexer->retToLower(lexer->retStrip(wordList[i])) == "create") {
                 ImGui::GetWindowDrawList()->AddText(ImVec2(ImGui::GetCursorScreenPos().x + 3, ImGui::GetCursorScreenPos().y + 3), IM_COL32(50, 150, 200, 255), &(wordList[i][0]));
@@ -138,10 +119,9 @@ class Interface : Util {
             }
         }
 
-        ImVec2 cursorpos = getCursorPosition(queryBuffer);
+        ImVec2 cursorpos = ImVec2(lexer->getCursorPosition(queryBuffer).first, lexer->getCursorPosition(queryBuffer).second);
         vector<string> snippet = lexer->getSnippet(lastWord, *db);
-        int n = min(int(snippet.size()), 3);
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < min(int(snippet.size()), 3); i++) {
             ImGui::GetWindowDrawList()->AddText(ImVec2(ImGui::GetCursorScreenPos().x + cursorpos.x + 15, ImGui::GetCursorScreenPos().y + 20 * i + 20 + cursorpos.y), IM_COL32(160, 200, 160, 255), &(snippet[i][0]));
         }
 
@@ -164,7 +144,7 @@ class Interface : Util {
             }
             READRESPONSE->clear();
 
-            compiler->runCompiler(queryBuffer, READRESPONSE);
+            interpreter->runInterpreter(queryBuffer, READRESPONSE);
         }
 
         ImGui::End();
@@ -200,7 +180,7 @@ class Interface : Util {
                     ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(20 + cursor.x + w*j, cursor.y + 20*i), ImVec2(20 + cursor.x + w*(j + 1) - 1, cursor.y + 20*(i + 1) - 1), IM_COL32(30, 30, 30, 255));
                     if (ImGui::IsMouseHoveringRect(ImVec2(20 + cursor.x + w*j, cursor.y + 20*i), ImVec2(20 + cursor.x + w*(j + 1) - 1, cursor.y + 20*(i + 1) - 1))) {
                         ImGui::BeginTooltip();
-                        ImGui::Text(&((table.getTableData()[0].getRowData()[j].getValue() + ": " + table.getTableData()[i].getRowData()[j].getData()->getType())[0]));
+                        ImGui::Text(&((table.getTableData()[0].getRowData()[j].getValue() + ": " + table.getTableData()[i].getRowData()[j].getDataType())[0]));
                         ImGui::Text(&(("ROW " + to_string(i) + " " + "COL " + to_string(j + 1))[0]));
                         ImGui::EndTooltip();
                     }

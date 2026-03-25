@@ -65,12 +65,12 @@ public:
     }
 };
 
-class Lexer: public Parsing {
+class Lexer: public Parser {
     static Lexer* instance;
-    DFA dfaTokenizer;
+    DFA dfaLexer;
 
     Lexer(): 
-    dfaTokenizer(vector<int>{0, 1, 2}, vector<int>{0, 1}, vector<int>{0, 0, 1,  0, 0, 1}, vector<char> {' ', ';', '%'}) {}
+    dfaLexer(vector<int>{0, 1, 2}, vector<int>{0, 1}, vector<int>{0, 0, 1,  0, 0, 1}, vector<char> {' ', ';', '%'}) {}
 
 public:
     static Lexer* getInstance() {
@@ -79,121 +79,91 @@ public:
     }
 
     vector<vector<string>> runLexer(string queries) {
-        vector<vector<string>> wordList;
+        vector<vector<string>> tokenList;
 
         removeSpaces(queries);   
-        
         vector<string> instructions = splitInstructions(queries);
         for (int k = 0; k < instructions.size(); k++) {
-            vector<int> state = dfaTokenizer.runDFA(instructions[k]);
+            vector<int> state = dfaLexer.runDFA(instructions[k]);
 
-            wordList.push_back({""});
+            tokenList.push_back({""});
             for (int i = 0; i < instructions[k].length(); i++) {
-                int lastInstruction = wordList.size() - 1;
-                int lastToken = wordList[lastInstruction].size() - 1;
+                int lastInstruction = tokenList.size() - 1;
+                int lastToken = tokenList[lastInstruction].size() - 1;
 
                 // Collect char based on state
-                if (state[i] == 0 && wordList[lastInstruction][lastToken] != "") {
-                    wordList[lastInstruction].push_back("");
+                if (state[i] == 0 && tokenList[lastInstruction][lastToken] != "") {
+                    tokenList[lastInstruction].push_back("");
                 } else if (state[i] == 1) {
-                    wordList[lastInstruction][lastToken] += instructions[k][i];
+                    tokenList[lastInstruction][lastToken] += instructions[k][i];
                 }
 
                 // EDGE CASE: last word
-                if (i == instructions[k].length() - 1 && wordList[lastInstruction][lastToken] == "") {
-                    wordList[lastInstruction].pop_back();
+                if (i == instructions[k].length() - 1 && tokenList[lastInstruction][lastToken] == "") {
+                    tokenList[lastInstruction].pop_back();
                 }
             }
         }
 
-        removeIn(wordList);
-
-        return wordList;
-    }
-
-    vector<string> getWords(string queries) {
-        vector<string> wordList = partitionQuery(queries);
-
-        string sum = "";
-        for (int i = 0; i < wordList.size(); i++) {
-            const string orgsum = sum;
-            for (int j = 0; j < wordList[i].size(); j++) {
-                if (wordList[i][j] == '\n') {
-                    sum += "\n";
-                } else {
-                    sum += " ";
-                }
+        // Debug
+        cout << "\nDEBUG TOKENLIST\n";
+        for (auto x: tokenList) {
+            for (auto y: x) {
+                cout << y << " ";
             }
-
-            wordList[i] = orgsum + wordList[i];
+            cout << endl;
         }
+        cout << "\nDEBUG TOKENLIST\n";
 
-        return wordList;
-    }
+        removeIn(tokenList);
 
-    vector<string> getSnippet(string lastWord, Database& db) {
-        vector<string> checks = {"CREATE", "ADDROW", "DELROW", "READ", "WHERE", "ORDERBY"};
-        for (auto x: db.getDatabaseData()) {
-            checks.push_back(x.getTableName());
-            for (auto y: x.getTableData()[0].getRowData()) {
-                checks.push_back(y.getValue() + ":" + x.getTableName());
-            }
-        }
-
-        vector<string> ret;
-        if (lastWord == "") {
-            return ret;
-        }
-
-        if (lastWord[0] == '(') {
-            lastWord = lastWord.substr(1, -1);
-        }
-
-        for (auto word: checks) {
-            if ( retToLower(word.substr(0, min(int(word.length()), int(lastWord.length())))) == retToLower(lastWord.substr(0, min(int(word.length()), int(lastWord.length())))) ) {
-                ret.push_back(word);
-            }
-        }
-
-        return ret;
+        return tokenList;
     }
 };
 
-class Compiler {
-    static Compiler* instance;
+class Interpreter {
+    static Interpreter* instance;
 
-    Compiler() {}
+    Interpreter() {}
 
 public:
-    static Compiler* getInstance() {
-        if (!instance) instance = new Compiler();
+    static Interpreter* getInstance() {
+        if (!instance) instance = new Interpreter();
         return instance;
     }
 
-    void runCompiler(string queries, vector<Table*>* READRESPONSE) {
-        Compiler* compiler = Compiler::getInstance();
+    void runInterpreter(string queries, vector<Table*>* READRESPONSE) {
+        Interpreter* Interpreter = Interpreter::getInstance();
         Lexer* lexer = Lexer::getInstance();
-
-        vector<vector<string>> wordList = lexer->runLexer(queries);
         
         // Build queries
-        for (int k = 0; k < wordList.size(); k++) {
+        vector<vector<string>> instructions = lexer->runLexer(queries);
+        for (vector<string> token: instructions) {
             Query query;
             
-            query.action = lexer->retToLower(wordList[k][0]);
-            query.destination = wordList[k][2];
-            query.source = lexer->splitArgument(wordList[k][1]);
+            query.action = lexer->retToLower(token[0]);
+            query.destination = token[2];
+            query.source = lexer->tokenizeGeneralArgument(token[1]);
 
-            if (wordList[k].size() >= 4 && lexer->retToLower(query.action) == "read") {
-                for (int j = 3; j < wordList[k].size(); j += 2) {
-                    if (lexer->retToLower(wordList[k][j]) == "where") {
-                        query.where = lexer->tokenizeArgument(wordList[k][j + 1]);
-                    } else if (lexer->retToLower(wordList[k][j]) == "orderby") {
-                        query.orderby = lexer->tokenizeArgument(wordList[k][j + 1]);
+            if (lexer->retToLower(query.action) == "read") {
+                for (int j = 3; j < token.size(); j += 2) {
+                    string keyword = lexer->retToLower(token[j]);
+
+                    if (keyword == "where") {
+                        query.where = lexer->tokenizeFilterArgument(token[j + 1]);
+                    } else if (keyword == "orderby") {
+                        query.orderby = lexer->tokenizeFilterArgument(token[j + 1]);
                     }
                 }
             }
 
+            if (lexer->retToLower(query.action) == "create") {
+                pair<vector<string>, vector<string>> pair = lexer->tokenizeCreateArgument(query.source);
+                query.source = pair.first;
+                query.types = pair.second;
+            }
+
+            // Run query
             Table* queryResponse = query.runQuery();
             if (queryResponse != nullptr) {
                 READRESPONSE->push_back(queryResponse);
@@ -203,4 +173,4 @@ public:
 };
 
 Lexer* Lexer::instance = nullptr;
-Compiler* Compiler::instance = nullptr;
+Interpreter* Interpreter::instance = nullptr;

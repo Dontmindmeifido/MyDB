@@ -14,7 +14,7 @@ protected:
     }
 
 public:
-    Database* getConnection() {
+    const Database* getConnection() {
         return this->database;
     }
 
@@ -25,53 +25,37 @@ public:
 
 class Create : virtual public Connection {
 public:
-    void createTable(string tableName, vector<string> header) {
-        if (this->database->getTable(tableName) == nullptr) {
-            vector<string> headers;
-            vector<string> datatypes;
+    void createTable(string tableName, vector<string> headers, vector<string> dataTypes) {
+        Table* table = this->database->getTable(tableName);
 
-            for (int i = 0; i < header.size(); i++) {
-                bool side = true;
-                headers.push_back("");
-                datatypes.push_back("");
-                
-                for (auto x: header[i]) {
-                    if (x == ':') {
-                        side = false;
-                    } else {
-                        if (side) {
-                            headers[headers.size() - 1] += x;
-                        } else {
-                            datatypes[datatypes.size() - 1] += x;
-                        }
-                    }
-                }
-            }
+        if (table != nullptr || headers.empty() || headers.empty()) return;
 
-            this->database->getDatabaseData().push_back(Table(headers, datatypes, tableName));
-        } else {
-            cout << "TABLE ALREADY EXISTS";
-        }
+        vector<Table> databaseData = this->database->getDatabaseData();
+        databaseData.push_back(Table(headers, dataTypes, tableName));
+    
+        this->database->setDatabaseData(databaseData);
     }
 };
 
 class Read : virtual public Connection {
 public:
-    Table* readTable(string tableName, vector<string> headers, vector<string> where, vector<string> orderby) { // TODO add where stuff, order by, etc..
+    Table* readTable(string tableName, vector<string> headers, vector<string> where, vector<string> orderby) {
         Table* table = this->database->getTable(tableName);
+
+        if (table == nullptr || headers.empty()) return nullptr;
 
         // Get columns
         vector<Row> dummyrows = {Row(headers)};
         for (int i = 1; i < table->getTableData().size(); i++) {
-            int x = 0;
+            int column = 0;
             vector<string> rowdata;
 
-            for (int j = 0; j < table->getTableData()[i].getRowData().size(); j++) { // Direction concern
-                if (table->getTableData()[0].getRowData()[j].getValue() == headers[x]) {
+            for (int j = 0; j < table->getTableData()[i].getRowData().size(); j++) { // Direction sensitive
+                if (table->getTableData()[0].getRowData()[j].getValue() == headers[column]) {
                     rowdata.push_back(table->getTableData()[i].getRowData()[j].getValue());
 
-                    if (x < headers.size() - 1) {
-                        x++;
+                    if (column < headers.size() - 1) {
+                        column++;
                     }
                 }
             }
@@ -155,32 +139,28 @@ public:
     void addRow(string tableName, vector<string> row) {
         Table* table = this->database->getTable(tableName);
 
-        if (table != nullptr) {
-            vector<Row> tableData = table->getTableData();
-            tableData.push_back(Row(row));
+        if (table == nullptr || row.empty()) return;
 
-            table->setTableData(tableData);
-        }
+        vector<Row> tableData = table->getTableData();
+        tableData.push_back(Row(row));
+
+        table->setTableData(tableData);
     }
 };
 
 class Delete : virtual public Connection {
 public:
-    void deleteRow(string tableName) {
+    void deleteRow(string tableName, string row) {
         Table* table = this->database->getTable(tableName);
 
-        if (table->getTableData().size() >= 2) {
-            table->getTableData().pop_back();
-        }
-    }
+        if (table == nullptr) return;
 
-    void deleteRow(string tableName, int k) {
-        Table* table = this->database->getTable(tableName);
+        if (row.empty()) row = "0";
 
         if (table->getTableData().size() >= 2) {
             vector<Row> dummy;
             for (int i = 0; i < table->getTableData().size(); i++) {
-                if (i == k) {
+                if (i == stoi(row)) {
                     continue;
                 }
 

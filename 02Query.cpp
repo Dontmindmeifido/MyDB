@@ -3,6 +3,7 @@
 struct Query {
     string action;
     vector<string> source;
+    vector<string> types;
     string destination;
     vector<string> where;
     vector<string> orderby;
@@ -13,7 +14,7 @@ struct Query {
         Crud* crud = Crud::getInstance();
 
         if (action == "create") {
-            crud->createTable(destination, source);
+            crud->createTable(destination, source, types);
 
             return nullptr;
         } else if (action == "addrow") {
@@ -21,11 +22,7 @@ struct Query {
 
             return nullptr;
         } else if (action == "delrow") {
-            if (source[0] == "") {
-                crud->deleteRow(destination);
-            } else {
-                crud->deleteRow(destination, stoi(source[0]));
-            }
+            crud->deleteRow(destination, source[0]);
 
             return nullptr;
         } else if (action == "read") {
