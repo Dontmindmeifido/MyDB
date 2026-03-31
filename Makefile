@@ -1,19 +1,12 @@
 CXX = g++
-
 CXXFLAGS = -g -Wall -Wextra -MMD -MP -I./imgui -I./imgui/backends
 
 LIBS = -lglfw -lGL
 
 TARGET = db_engine
+BUILD_DIR = build
 
-USER_SRCS = main.cpp \
-            00Database.cpp \
-            01Crud.cpp \
-            02Query.cpp \
-            03Interpreter.cpp \
-            04Parser.cpp \
-            05Interface.cpp
-
+USER_SRCS = $(wildcard *.cpp)
 IMGUI_SRCS = imgui/imgui.cpp \
              imgui/imgui_draw.cpp \
              imgui/imgui_tables.cpp \
@@ -24,8 +17,7 @@ IMGUI_SRCS = imgui/imgui.cpp \
 
 SRCS = $(USER_SRCS) $(IMGUI_SRCS)
 
-OBJS = $(SRCS:.cpp=.o)
-
+OBJS = $(patsubst %.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 DEPS = $(OBJS:.o=.d)
 
 all: $(TARGET)
@@ -35,13 +27,14 @@ $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
 	@echo "Build complete! Run with ./$(TARGET)"
 
-%.o: %.cpp
+$(BUILD_DIR)/%.o: %.cpp
+	@mkdir -p $(dir $@)
 	@echo "Compiling $<..."
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	@echo "Wiping object files, dependency maps, and binaries..."
-	rm -f $(OBJS) $(DEPS) $(TARGET)
+	@echo "Nuking the build directory and binary..."
+	rm -rf $(BUILD_DIR) $(TARGET)
 
 .PHONY: all clean
 
