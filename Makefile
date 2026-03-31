@@ -1,12 +1,20 @@
 CXX = g++
-CXXFLAGS = -g -Wall -Wextra -MMD -MP -I./imgui -I./imgui/backends
-
+CXXFLAGS = -g -Wall -Wextra -MMD -MP \
+           -I./imgui -I./imgui/backends \
+           -I./src/Crud -I./src/Database -I./src/Interface -I./src/Interpreter -I./src/Misc
+           
 LIBS = -lglfw -lGL
 
 TARGET = db_engine
 BUILD_DIR = build
 
-USER_SRCS = $(wildcard *.cpp)
+USER_SRCS = $(wildcard src/Crud/*.cpp) \
+            $(wildcard src/Database/*.cpp) \
+            $(wildcard src/Interface/*.cpp) \
+            $(wildcard src/Interpreter/*.cpp) \
+            $(wildcard src/Misc/*.cpp) \
+            $(wildcard *.cpp)
+
 IMGUI_SRCS = imgui/imgui.cpp \
              imgui/imgui_draw.cpp \
              imgui/imgui_tables.cpp \
