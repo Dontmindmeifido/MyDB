@@ -26,7 +26,7 @@ std::vector<int> Dfa::run(std::string value) {
         }
 
         this->UpdateState(transitionIndex);
-        states.push_back(currentState); // Starts from 1
+        states.push_back(currentState);
     }
 
     // Reset current state

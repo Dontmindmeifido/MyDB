@@ -71,26 +71,25 @@ class Row {
 
 public:
     Row(std::vector<std::string> rowData);
-    std::vector<Cell> getRowData() const;
 
+    std::vector<Cell> getRowData() const;
     void setRowData(std::vector<Cell> rowData);
 };
-// Make a validator class whose sole purpose is to validate data on table creation / rows, etc...
+
 class Table {
     std::vector<Row> tableData;
     std::vector<std::string> tableDataTypes;
     std::string tableName;
 
-    bool verifyDataTypes(const std::vector<Row>& tableData);
-    bool verifyColumnSize(const std::vector<Row>& tableData);
+    bool verifyDataTypes(const std::vector<Row>& tableData) const;
+    bool verifyColumnSize(const std::vector<Row>& tableData) const;
 
 public:
     Table(std::vector<std::string> header, std::vector<std::string> datatypes, std::string tableName);
 
-    std::vector<Row> getTableData();
+    std::vector<Row> getTableData() const;
     void setTableData(std::vector<Row> tableData);
-
-    std::string getTableName();
+    std::string getTableName() const;
 };
 
 class Database {
@@ -103,7 +102,6 @@ public:
     static Database* getInstance();
 
     Table* getTable(std::string name);
-    std::vector<Table> getDatabaseData();
-
+    std::vector<Table> getDatabaseData() const;
     void setDatabaseData(std::vector<Table> databaseData);
 };

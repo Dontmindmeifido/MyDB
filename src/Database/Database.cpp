@@ -196,7 +196,7 @@ void Row::setRowData(std::vector<Cell> rowData) {
 }
 
 
-bool Table::verifyDataTypes(const std::vector<Row>& tableData) {
+bool Table::verifyDataTypes(const std::vector<Row>& tableData) const {
     if (tableDataTypes[0] == "ANY") { // Escape ANY type
         return true;
     }
@@ -211,7 +211,7 @@ bool Table::verifyDataTypes(const std::vector<Row>& tableData) {
     return true;
 }
 
-bool Table::verifyColumnSize(const std::vector<Row>& tableData) {
+bool Table::verifyColumnSize(const std::vector<Row>& tableData) const {
     for (int i = 1; i < tableData.size(); i++) {
         if (tableData[0].getRowData().size() != tableData[i].getRowData().size()) 
         return false;
@@ -227,7 +227,7 @@ Table::Table(std::vector<std::string> header, std::vector<std::string> datatypes
     this->tableName = tableName;
 }
 
-std::vector<Row> Table::getTableData() {
+std::vector<Row> Table::getTableData() const {
     return this->tableData;
 }
 
@@ -242,7 +242,7 @@ void Table::setTableData(std::vector<Row> tableData) {
     }
 }
 
-std::string Table::getTableName() {
+std::string Table::getTableName() const {
     return this->tableName;
 }
 
@@ -265,7 +265,7 @@ Table* Database::getTable(std::string name) {
     return nullptr;
 }
 
-std::vector<Table> Database::getDatabaseData() {
+std::vector<Table> Database::getDatabaseData() const {
     return this->databaseData;
 }
 

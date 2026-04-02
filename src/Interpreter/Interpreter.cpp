@@ -25,6 +25,20 @@ Interpreter::Interpreter():
                                  },
                 std::vector<std::string> {"in", "%"}
              ),
+             dfaRead(
+                std::vector<int> {0, 1, 2, 3},
+                std::vector<int> {0, 1, 2, 3, 4, 5, 6},
+                std::vector<int> {
+                                  1, 6, 6, 0,
+                                  6, 6, 6, 2,
+                                  6, 3, 4, 6,
+                                  6, 6, 6, 5,
+                                  6, 6, 6, 5,
+                                  6, 3, 4, 5,
+                                  6, 6, 6, 6
+                                 },
+                std::vector<std::string> {"in", "where", "orderby", "%"}
+             ),
              dfaUpdate(
                 std::vector<int> {0, 1},
                 std::vector<int> {0, 1, 2, 3},
@@ -74,6 +88,7 @@ void Interpreter::runInterpreter(std::string queries, std::vector<Table*>* READR
         }
 
         std::vector<int> state;
+        std::string filter = "";
         switch (index) {
             case -1:
                 continue;
@@ -92,13 +107,45 @@ void Interpreter::runInterpreter(std::string queries, std::vector<Table*>* READR
                             query.table = token[i];
                             break;
                         case 4:
-                            std::cout << "ERROR";
-                            break; 
+                            std::cout << "ERROR CREATE";
+                            return;
                     }
                 }
+
                 break;
             case 1:
-                // Read
+                state = dfaRead.run(token);
+                
+                for (int i = 0; i < state.size(); i++) {
+                    switch (state[i]) {
+                        case 0:
+                            query.actionParameters0.push_back(token[i]);
+                            std::cout << token[i];
+                            break;
+                        case 2:
+                            query.table = token[i];
+                            std::cout << token[i];
+                            break; 
+                        case 3:
+                            filter = "where";
+                            break;
+                        case 4:
+                            filter = "orderby";
+                            break; 
+                        case 5:
+                            if (filter == "where") {
+                                query.filterWhereParameters.push_back(token[i]);
+                                std::cout << token[i];
+                            } else if (filter == "orderby") {
+                                query.filterOrderByParameters.push_back(token[i]);
+                            }
+                            break; 
+                        case 6:
+                            std::cout << "ERROR READ";
+                            return;
+                    }
+                }
+
                 break;
             case 2:
                 state = dfaUpdate.run(token);
@@ -112,12 +159,11 @@ void Interpreter::runInterpreter(std::string queries, std::vector<Table*>* READR
                             query.table = token[i];
                             break;
                         case 3:
-                            std::cout << "ERROR";
-                            break; 
+                            std::cout << "ERROR UPDATE";
+                            return;
                     }
                 }
 
-                // Update
                 break;
             case 3:
                 state = dfaDelete.run(token);
@@ -133,10 +179,11 @@ void Interpreter::runInterpreter(std::string queries, std::vector<Table*>* READR
                             std::cout << std::endl << query.table << std::endl;
                             break;
                         case 3:
-                            std::cout << "ERROR";
-                            break; 
+                            std::cout << "ERROR DELETE";
+                            return;
                     }
                 }
+
                 break;
         }
 

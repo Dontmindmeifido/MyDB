@@ -9,7 +9,7 @@ class Interpreter {
     std::vector<std::string> filterTokens {std::vector<std::string> {"where", "orderby"}};
     std::string destinationToken {"in"};
     Dfa dfaCreate;
-    //Dfa dfaRead;
+    Dfa dfaRead;
     Dfa dfaUpdate;
     Dfa dfaDelete;
 

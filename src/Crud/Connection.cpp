@@ -4,9 +4,7 @@ Connection::Connection() {
     this->database = Database::getInstance();
 }
 
-Connection::~Connection() {
-    delete database;
-}
+Connection::~Connection() {}
 
 const Database* Connection::getConnection() {
     return this->database;

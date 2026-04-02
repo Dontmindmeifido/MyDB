@@ -4,7 +4,7 @@ Table* Read::run(std::string tableName, std::vector<std::string> headers, std::v
     Table* table = this->database->getTable(tableName);
 
     if (table == nullptr || headers.empty() || where.size() % 3 != 0 || orderby.size() % 2 != 0) return nullptr; // miss empty arguments
-
+    
     // Get columns
     std::vector<Row> dummyrows = {Row(headers)};
     for (int i = 1; i < table->getTableData().size(); i++) {
