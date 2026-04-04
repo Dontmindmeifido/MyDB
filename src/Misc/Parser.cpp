@@ -21,9 +21,9 @@ std::vector<std::string> Parser::getSpacedWords(std::string queries) {
     std::vector<std::string> wordList = partitionQuery(queries);
 
     std::string sum = "";
-    for (int i = 0; i < wordList.size(); i++) {
+    for (int i = 0; i < (int)wordList.size(); i++) {
         const std::string orgsum = sum;
-        for (int j = 0; j < wordList[i].size(); j++) {
+        for (int j = 0; j < (int)wordList[i].size(); j++) {
             if (wordList[i][j] == '\n') {
                 sum += "\n";
             } else {
