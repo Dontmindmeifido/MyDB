@@ -7,7 +7,7 @@ Table* Read::run(std::string tableName, std::vector<std::string> headers, std::v
     
     // Get columns
     std::vector<Row> dummyrows = {Row(headers)};
-    for (int i = 1; i < table->getTableData().size(); i++) {
+    for (int i = 1; i < (int)table->getTableData().size(); i++) {
         int column = 0;
         std::vector<std::string> rowdata;
 
@@ -15,7 +15,7 @@ Table* Read::run(std::string tableName, std::vector<std::string> headers, std::v
             if (table->getTableData()[0].getRowData()[j].getValue() == headers[column]) {
                 rowdata.push_back(table->getTableData()[i].getRowData()[j].getValue());
 
-                if (column < headers.size() - 1) {
+                if (column < (int)headers.size() - 1) {
                     column++;
                 }
             }
@@ -35,13 +35,13 @@ Table* Read::run(std::string tableName, std::vector<std::string> headers, std::v
         std::string comparator = where[2];
 
         int columnIndex = 0;
-        for (int i = 0; i < table->getTableData()[0].getRowData().size(); i++) {
+        for (int i = 0; i < (int)table->getTableData()[0].getRowData().size(); i++) {
             if (table->getTableData()[0].getRowData()[i].getValue() == column) {
                 columnIndex = i;
             }
         }
 
-        for (int i = 1; i < dummyrows.size(); i++) {
+        for (int i = 1; i < (int)dummyrows.size(); i++) {
             if (operation == ">") {
                 if (table->getTableData()[i].getRowData()[columnIndex].getValue() > comparator) {
                     rowdata.push_back(dummyrows[i]);
@@ -75,7 +75,7 @@ Table* Read::run(std::string tableName, std::vector<std::string> headers, std::v
         std::string order = orderby[1];
 
         int columnIndex = 0;
-        for (int i = 0; i < headers.size(); i++) {
+        for (int i = 0; i < (int)headers.size(); i++) {
             if (headers[i] == column) {
                 columnIndex = i;
             }

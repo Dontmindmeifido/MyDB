@@ -24,7 +24,7 @@ bool isDATETIME(std::string value) {
     bool isDatetime = true;
     std::vector<char> FORMAT = {'D', 'D', '-', 'M', 'M', '-', 'Y', 'Y', 'Y', 'Y'};
 
-    for (int i = 0; i < FORMAT.size(); i++) {
+    for (int i = 0; i < (int)FORMAT.size(); i++) {
         switch(FORMAT[i]) {
             case 'D':
                 if (!isNUMBER(value[i])) isDatetime = false;
@@ -201,8 +201,8 @@ bool Table::verifyDataTypes(const std::vector<Row>& tableData) const {
         return true;
     }
 
-    for (int i = 1; i < tableData.size(); i++) {
-        for (int j = 0; j < tableData[i].getRowData().size(); j++) {
+    for (int i = 1; i < (int)tableData.size(); i++) {
+        for (int j = 0; j < (int)tableData[i].getRowData().size(); j++) {
             if (tableDataTypes[j] != tableData[i].getRowData()[j].getDataType())
             return false;
         }
@@ -212,7 +212,7 @@ bool Table::verifyDataTypes(const std::vector<Row>& tableData) const {
 }
 
 bool Table::verifyColumnSize(const std::vector<Row>& tableData) const {
-    for (int i = 1; i < tableData.size(); i++) {
+    for (int i = 1; i < (int)tableData.size(); i++) {
         if (tableData[0].getRowData().size() != tableData[i].getRowData().size()) 
         return false;
 
@@ -255,7 +255,7 @@ Database* Database::getInstance() {
 }
 
 Table* Database::getTable(std::string name) {
-    for (int i = 0; i < databaseData.size(); i++) {
+    for (int i = 0; i < (int)databaseData.size(); i++) {
         if (databaseData[i].getTableName() == name) {
             return &databaseData[i];
         }
