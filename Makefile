@@ -1,23 +1,23 @@
 CXX = g++
 CXXFLAGS = -g -Wall -Wextra -MMD -MP \
-           -I./imgui -I./imgui/backends \
+           -I./external/imgui -I./external/imgui/backends \
            -I./src/Crud -I./src/Database -I./src/Interface -I./src/Interpreter -I./src/Misc
            
 LIBS = -lglfw -lGL
 
-TARGET = Launch.exe
-BUILD_DIR = .build
+BUILD_DIR = build
+TARGET = $(BUILD_DIR)/Launch.exe
 
 USER_SRCS = $(wildcard src/*/*.cpp) \
-            $(wildcard *.cpp)
+            $(wildcard src/main.cpp)
 
-IMGUI_SRCS = imgui/imgui.cpp \
-             imgui/imgui_draw.cpp \
-             imgui/imgui_tables.cpp \
-             imgui/imgui_widgets.cpp \
-             imgui/backends/imgui_impl_glfw.cpp \
-             imgui/backends/imgui_impl_opengl3.cpp \
-             imgui/misc/cpp/imgui_stdlib.cpp
+IMGUI_SRCS = external/imgui/imgui.cpp \
+             external/imgui/imgui_draw.cpp \
+             external/imgui/imgui_tables.cpp \
+             external/imgui/imgui_widgets.cpp \
+             external/imgui/backends/imgui_impl_glfw.cpp \
+             external/imgui/backends/imgui_impl_opengl3.cpp \
+             external/imgui/misc/cpp/imgui_stdlib.cpp
 
 SRCS = $(USER_SRCS) $(IMGUI_SRCS)
 
@@ -27,6 +27,7 @@ DEPS = $(OBJS:.o=.d)
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
+	@mkdir -p $(dir $@)
 	@echo "Linking final executable: $(TARGET)..."
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
 	@echo "Build complete! Run with ./$(TARGET)"

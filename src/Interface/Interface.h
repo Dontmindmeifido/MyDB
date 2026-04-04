@@ -1,12 +1,12 @@
 #pragma once
-#include <GLFW/glfw3.h> 
-#include "../imgui/imgui.h"
-#include "../imgui/backends/imgui_impl_glfw.h"
-#include "../imgui/backends/imgui_impl_opengl3.h"
-#include "../imgui/misc/cpp/imgui_stdlib.h"
 #include <math.h>
 #include <iostream>
 #include <string>
+#include <GLFW/glfw3.h> 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include "misc/cpp/imgui_stdlib.h"
 #include "../Interpreter/Interpreter.h"
 
 class Interface {   

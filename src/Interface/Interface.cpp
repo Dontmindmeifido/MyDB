@@ -199,7 +199,7 @@ GLFWwindow* Interface::initWindow() {
     glfwMakeContextCurrent(window);
 
     ImGui::CreateContext();
-    ImGui::GetIO().Fonts->AddFontFromFileTTF("fonts/font.ttf", 18.0f);
+    ImGui::GetIO().Fonts->AddFontFromFileTTF("assets/fonts/font.ttf", 18.0f);
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
 
