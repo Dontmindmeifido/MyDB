@@ -5,9 +5,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# -------------------------------------------------------------------
-# 1. DEPENDENCY INJECTION (GLFW & OPENGL)
-# -------------------------------------------------------------------
 include(FetchContent)
 FetchContent_Declare(
     glfw
@@ -21,10 +18,6 @@ FetchContent_MakeAvailable(glfw)
 
 find_package(OpenGL REQUIRED)
 
-# -------------------------------------------------------------------
-# 2. SOURCE TREE MAPPING
-# -------------------------------------------------------------------
-# Recursively captures main.cpp and all nested .cpp files inside src/
 file(GLOB_RECURSE USER_SRCS "src/*.cpp")
 
 set(IMGUI_SRCS
@@ -37,9 +30,6 @@ set(IMGUI_SRCS
     external/imgui/misc/cpp/imgui_stdlib.cpp
 )
 
-# -------------------------------------------------------------------
-# 3. THIRD-PARTY LIBRARY COMPILATION (Shielded from strict flags)
-# -------------------------------------------------------------------
 add_library(imgui_lib STATIC ${IMGUI_SRCS})
 target_include_directories(imgui_lib PUBLIC 
     external/imgui 
@@ -47,14 +37,8 @@ target_include_directories(imgui_lib PUBLIC
 )
 target_link_libraries(imgui_lib PRIVATE glfw OpenGL::GL)
 
-# -------------------------------------------------------------------
-# 4. THE EXECUTABLE CONTRACT (Pure proprietary code)
-# -------------------------------------------------------------------
 add_executable(db_engine ${USER_SRCS})
 
-# -------------------------------------------------------------------
-# 5. COMPILER INCLUDE & LINKER FLAGS
-# -------------------------------------------------------------------
 target_include_directories(db_engine PRIVATE
     src/Crud
     src/Database
@@ -65,9 +49,6 @@ target_include_directories(db_engine PRIVATE
 
 target_link_libraries(db_engine PRIVATE imgui_lib glfw OpenGL::GL)
 
-# -------------------------------------------------------------------
-# 6. STRICT COMPILER FLAGS (Target-Scoped to protect external libs)
-# -------------------------------------------------------------------
 if(DEFINED WARNINGS_AS_ERRORS)
 elseif(DEFINED ENV{WARNINGS_AS_ERRORS})
     set(WARNINGS_AS_ERRORS $ENV{WARNINGS_AS_ERRORS})
@@ -91,9 +72,6 @@ else()
     endif()
 endif()
 
-# -------------------------------------------------------------------
-# 7. SANITIZERS (Target-Scoped)
-# -------------------------------------------------------------------
 set(is_debug "$<CONFIG:Debug>")
 set(is_rel_with_deb "$<CONFIG:RelWithDebInfo>")
 set(debug_mode "$<OR:${is_debug},${is_rel_with_deb}>")
@@ -105,7 +83,6 @@ elseif(APPLE)
     target_link_options(db_engine PRIVATE "$<${debug_mode}:-fsanitize=address,undefined>")
 elseif(UNIX)
     if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-        # GCC left clean for Valgrind
     elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
         if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER_EQUAL "14.0")
             target_compile_options(db_engine PRIVATE "$<${debug_mode}:-fsanitize=address,undefined>")
@@ -114,7 +91,4 @@ elseif(UNIX)
     endif()
 endif()
 
-# -------------------------------------------------------------------
-# 8. INSTALLATION
-# -------------------------------------------------------------------
 install(TARGETS db_engine DESTINATION bin)

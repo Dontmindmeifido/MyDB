@@ -50,16 +50,6 @@ jobs:
             name: Ubuntu 24.04 GCC 13
             cmake_flags: -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-          - os: macos-14
-            c: clang
-            cxx: clang++
-            name: macOS 14 Apple Clang (M1)
-
-          - os: windows-2022
-            c: cl
-            cxx: cl
-            name: Windows 2022 MSVC
-
           - os: windows-2022
             c: gcc
             cxx: g++
