@@ -80,7 +80,7 @@ void Interpreter::runInterpreter(std::string queries, std::vector<Table*>* READR
         
         // Find query index
         int index = -1;
-        for (int i = 0; i < actionTokens.size(); i++) {
+        for (int i = 0; i < (int)actionTokens.size(); i++) {
             if (actionTokens[i] == query.action) {
                 index = i;
                 break;
@@ -95,7 +95,7 @@ void Interpreter::runInterpreter(std::string queries, std::vector<Table*>* READR
             case 0:
                 state = dfaCreate.run(token);
 
-                for (int i = 0; i < state.size(); i++) {
+                for (int i = 0; i < (int)state.size(); i++) {
                     switch (state[i]) {
                         case 0:
                             query.actionParameters1.push_back(token[i]);
@@ -116,7 +116,7 @@ void Interpreter::runInterpreter(std::string queries, std::vector<Table*>* READR
             case 1:
                 state = dfaRead.run(token);
                 
-                for (int i = 0; i < state.size(); i++) {
+                for (int i = 0; i < (int)state.size(); i++) {
                     switch (state[i]) {
                         case 0:
                             query.actionParameters0.push_back(token[i]);
@@ -150,7 +150,7 @@ void Interpreter::runInterpreter(std::string queries, std::vector<Table*>* READR
             case 2:
                 state = dfaUpdate.run(token);
 
-                for (int i = 0; i < state.size(); i++) {
+                for (int i = 0; i < (int)state.size(); i++) {
                     switch (state[i]) {
                         case 0:
                             query.actionParameters0.push_back(token[i]);
@@ -168,7 +168,7 @@ void Interpreter::runInterpreter(std::string queries, std::vector<Table*>* READR
             case 3:
                 state = dfaDelete.run(token);
 
-                for (int i = 0; i < state.size(); i++) {
+                for (int i = 0; i < (int)state.size(); i++) {
                     switch (state[i]) {
                         case 0:
                             query.actionParameters0.push_back(token[i]);

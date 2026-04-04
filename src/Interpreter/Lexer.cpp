@@ -23,7 +23,7 @@ std::vector<std::vector<std::string>> Lexer::runLexer(std::string queries) {
     std::vector<std::vector<std::string>> tokenList = {{""}};
 
     std::vector<int> state = dfaTokenizer.run(queries);
-    for (int i = 0; i < state.size(); i++) {
+    for (int i = 0; i < (int)state.size(); i++) {
         int lastIndex0 = tokenList.size() - 1;
         int lastIndex1 = tokenList[lastIndex0].size() - 1;
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Crud/Crud.h";
+#include "../Crud/Crud.h"
 
 struct Query {
     std::string action;

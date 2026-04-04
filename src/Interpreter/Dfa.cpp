@@ -18,7 +18,7 @@ std::vector<int> Dfa::run(std::string value) {
     for (auto chr: value) {
         // Find in alphabetMap
         int transitionIndex = alphabetMap.size() - 1;
-        for (int i = 0; i < alphabetMap.size() - 1; i++) {
+        for (int i = 0; i < (int)alphabetMap.size() - 1; i++) {
             if (chr == alphabetMap[i][0]) {
                 transitionIndex = i;
                 break;
@@ -41,7 +41,7 @@ std::vector<int> Dfa::run(std::vector<std::string> value) {
     for (auto chr: value) {
         // Find in alphabetMap
         int transitionIndex = alphabetMap.size() - 1;
-        for (int i = 0; i < alphabetMap.size() - 1; i++) {
+        for (int i = 0; i < (int)alphabetMap.size() - 1; i++) {
             if (chr == alphabetMap[i]) {
                 transitionIndex = i;
                 break;
