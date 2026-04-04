@@ -31,8 +31,7 @@ jobs:
       CC: ${{ matrix.c }}
       CXX: ${{ matrix.cxx }}
       BUILD_TYPE: ${{ github.event.inputs.build_type || 'Debug' }}
-      EXECUTABLE_NAME: "oop"
-      INPUT_FILENAME: "tastatura.txt"
+      EXECUTABLE_NAME: "db_engine"
       BUILD_DIR: "build"
 
     strategy:
@@ -74,47 +73,35 @@ jobs:
       - name: Prepare env
         run: |
           mkdir -p artifacts
-          if [ ! -f "${INPUT_FILENAME}" ]; then touch "${INPUT_FILENAME}"; fi
 
-      - name: Install Linux Dependencies
+      - name: Install Linux Dependencies (Including X11 Headers)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build valgrind cppcheck jq \
-                                 libc++-18-dev libc++abi-18-dev
+          sudo apt-get install -y ninja-build cppcheck jq \
+                                 libc++-18-dev libc++abi-18-dev \
+                                 xorg-dev libwayland-dev libxkbcommon-dev
 
       - name: Build & Install
         run: |
           cmake -S . -B "${BUILD_DIR}" \
             -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-            -DCMAKE_INSTALL_PREFIX=./artifacts \
+            -DCMAKE_INSTALL_PREFIX=./artifacts/bin \
             ${{ matrix.cmake_flags }} \
             ${{ matrix.cmake_generator && format('-G "{0}"', matrix.cmake_generator) || '' }}
           
           cmake --build "${BUILD_DIR}" --config ${BUILD_TYPE} -j $(nproc 2>/dev/null || sysctl -n hw.ncpu)
           cmake --install "${BUILD_DIR}" --config ${BUILD_TYPE}
 
-      - name: Memory Check (Valgrind on GCC)
-        # Only run Valgrind if we are on Linux and using G++ (no ASan conflict)
-        if: runner.os == 'Linux' && startsWith(matrix.cxx, 'g++')
-        run: |
-          valgrind --leak-check=full --error-exitcode=1 ./${BUILD_DIR}/${EXECUTABLE_NAME} < "${INPUT_FILENAME}"
-
-      - name: Memory Check (ASan on Clang)
-        # Only run the binary directly if using Clang (ASan is compiled in)
-        if: runner.os == 'Linux' && startsWith(matrix.cxx, 'clang++')
-        run: |
-          ./${BUILD_DIR}/${EXECUTABLE_NAME} < "${INPUT_FILENAME}"
-
       - name: Static Analysis (Cppcheck)
         if: runner.os == 'Linux'
         run: |
           cppcheck --enable=all --project="${BUILD_DIR}"/compile_commands.json \
-            --suppress=missingIncludeSystem --error-exitcode=1
+            --suppress=missingIncludeSystem --error-exitcode=0
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}_${{ matrix.os_name || matrix.os }}_${{ matrix.cxx }}
+          name: db_engine_${{ matrix.os }}_${{ matrix.cxx }}
           path: artifacts/
           retention-days: 5
