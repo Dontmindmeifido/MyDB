@@ -86,7 +86,7 @@ NUMBER::NUMBER(std::string value) {
         this->value = value;
         this->type = "NUMBER";
     } else {
-        std::cout << "ERROR WRONG NUMBER TYPE";
+        throw CellDataError();
     }
 }
 
@@ -110,7 +110,7 @@ DATETIME::DATETIME(std::string value) {
         this->value = value;
         this->type = "DATETIME";
     } else {
-        std::cout << "ERROR WRONG DATETIME TYPE";
+        throw CellDataError();
     }
 }
 
@@ -238,7 +238,7 @@ void Table::setTableData(std::vector<Row> tableData) {
     if (validType && validColumns) {
         this->tableData = tableData;
     } else {
-        std::cout << "INVALID WTF";
+        throw TableDataError();
     }
 }
 

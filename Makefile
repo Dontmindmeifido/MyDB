@@ -8,11 +8,7 @@ LIBS = -lglfw -lGL
 TARGET = db_engine
 BUILD_DIR = build
 
-USER_SRCS = $(wildcard src/Crud/*.cpp) \
-            $(wildcard src/Database/*.cpp) \
-            $(wildcard src/Interface/*.cpp) \
-            $(wildcard src/Interpreter/*.cpp) \
-            $(wildcard src/Misc/*.cpp) \
+USER_SRCS = $(wildcard src/*/*.cpp) \
             $(wildcard *.cpp)
 
 IMGUI_SRCS = imgui/imgui.cpp \

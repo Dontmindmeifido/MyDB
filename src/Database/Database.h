@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include "../Error/Error.h"
 
 bool isNUMBER(std::string value);
 
