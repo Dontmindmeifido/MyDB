@@ -3,56 +3,11 @@
 #include <vector>
 #include <iostream>
 #include "../Error/Error.h"
-
-bool isNUMBER(std::string value);
-
-bool isNUMBER(char value);
-
-bool isDATETIME(std::string value);
-
-class DataType {
-protected:
-    std::string value;
-    std::string type;
-
-public:
-    virtual ~DataType() {};
-
-    std::string getValue() const;
-    std::string getType() const;
-
-    virtual DataType* clone() const = 0;
-};
-
-class VARCHAR: public DataType {
-public:
-    VARCHAR();
-    VARCHAR(std::string value);
-    VARCHAR(VARCHAR* obj);
-
-    VARCHAR* clone() const override;
-};
-
-class NUMBER: public DataType {
-public: 
-    NUMBER();
-    NUMBER(std::string value);
-    NUMBER(NUMBER* obj);
-
-    NUMBER* clone() const override;
-};
-
-class DATETIME: public DataType {
-public:
-    DATETIME();
-    DATETIME(std::string value);
-    DATETIME(DATETIME* obj);
-
-    DATETIME* clone() const override;
-};
+#include "Type.h"
+#include "Meta.h"
 
 class Cell {
-    DataType* data;
+    Primitive* cell;
 
 public:
     Cell();
@@ -61,48 +16,49 @@ public:
     ~Cell();
 
     Cell& operator=(const Cell& other);
-
+    Primitive* getCell() const;
+    std::string getType() const;
     std::string getValue() const;
-    std::string getDataType() const;
-    DataType* getData() const;
+    void setCell();
 };
 
 class Row {
-    std::vector<Cell> rowData;
+    std::vector<Cell> cells;
 
 public:
-    Row(std::vector<std::string> rowData);
+    Row(std::vector<std::string> cells);
 
-    std::vector<Cell> getRowData() const;
-    void setRowData(std::vector<Cell> rowData);
+    std::vector<Cell> getCells() const;
+    void setCells(std::vector<Cell> cells);
 };
 
 class Table {
-    std::vector<Row> tableData;
-    std::vector<std::string> tableDataTypes;
-    std::string tableName;
+    std::string name;
+    std::vector<Row> rows;
+    Meta meta;
 
-    bool verifyDataTypes(const std::vector<Row>& tableData) const;
+    bool verifyPrimitives(const std::vector<Row>& tableData) const; //TODO ADD IN VALIDATOR
     bool verifyColumnSize(const std::vector<Row>& tableData) const;
 
 public:
-    Table(std::vector<std::string> header, std::vector<std::string> datatypes, std::string tableName);
+    Table(std::vector<std::string> header, std::vector<std::string> Primitives, std::string name);
 
-    std::vector<Row> getTableData() const;
-    void setTableData(std::vector<Row> tableData);
-    std::string getTableName() const;
+    std::vector<Row> getRows() const;
+    void setRows(std::vector<Row> tableData);
+    std::string getName() const;
 };
 
 class Database {
-    static Database* instance;
-    std::vector<Table> databaseData; 
+    std::string name;
+    std::vector<Table> tables; 
 
+    static Database* instance;
     Database();
 
 public:
     static Database* getInstance();
 
-    Table* getTable(std::string name);
-    std::vector<Table> getDatabaseData() const;
-    void setDatabaseData(std::vector<Table> databaseData);
+    Table* getTableByName(std::string name); // TODO DEPRECATE
+    std::vector<Table> getTables() const;
+    void setTables(std::vector<Table> databaseData);
 };

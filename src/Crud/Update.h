@@ -1,9 +1,7 @@
 #pragma once
-#include "Connection.h"
+#include "../Database/Database.h"
 
-class Update : virtual public Connection {
+class Update {
 public:
-    virtual ~Update() {}
-
-    void run(std::string tableName, std::vector<std::string> row);
+    static void run(Database* database, std::string tableName, std::vector<std::string> row);
 };

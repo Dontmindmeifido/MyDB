@@ -13,8 +13,8 @@ void Interface::DatabaseWindow() {
 
     // Table names
     if (ImGui::BeginMenuBar()) {
-        for (int i = 0; i < (int)db->getDatabaseData().size(); i++) {
-            if (ImGui::MenuItem(&(db->getDatabaseData()[i].getTableName()[0]))) {
+        for (int i = 0; i < (int)db->getTables().size(); i++) {
+            if (ImGui::MenuItem(&(db->getTables()[i].getName()[0]))) {
                 if (selectedTable != i) {
                     selectedTable = i;
                 }
@@ -26,27 +26,27 @@ void Interface::DatabaseWindow() {
     // Table cells
     if (selectedTable != -1) {
         ImVec2 cursor = ImGui::GetCursorScreenPos();
-        Table table = db->getDatabaseData()[selectedTable];
-        ImGui::Dummy(ImVec2(0, 20 * (int(table.getTableData().size()))));
-        int w = (ImGui::GetIO().DisplaySize.x * 0.5 - 38) / std::min(10, int(table.getTableData()[0].getRowData().size())); // Soft limit on 10 visible cols
+        Table table = db->getTables()[selectedTable];
+        ImGui::Dummy(ImVec2(0, 20 * (int(table.getRows().size()))));
+        int w = (ImGui::GetIO().DisplaySize.x * 0.5 - 38) / std::min(10, int(table.getRows()[0].getCells().size())); // Soft limit on 10 visible cols
         ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(cursor.x, cursor.y), ImVec2(cursor.x + 20 - 1, cursor.y + 20 - 1), IM_COL32(30, 30, 30, 255));
-        for (int j = 1; j < (int)table.getTableData().size(); j++) {
+        for (int j = 1; j < (int)table.getRows().size(); j++) {
             std::string text = std::to_string(j);
             ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(cursor.x, cursor.y + 20*j), ImVec2(cursor.x + 20 - 1, cursor.y + 20*(j + 1) - 1), IM_COL32(30, 30, 30, 255));
             ImGui::GetWindowDrawList()->AddText(ImVec2(((text.length() == 1) ? 5 : 1) + cursor.x, cursor.y + 20*j), IM_COL32(255, 255, 255, 255), &(text[0]), &(text[text.size()]));
         }
-        for (int j = 0; j < (int)table.getTableData()[0].getRowData().size(); j++) {
-            std::string text = table.getTableData()[0].getRowData()[j].getValue();
+        for (int j = 0; j < (int)table.getRows()[0].getCells().size(); j++) {
+            std::string text = table.getRows()[0].getCells()[j].getValue();
             ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(20 + cursor.x + w*j, cursor.y), ImVec2(20 + cursor.x + w*(j + 1) - 1, cursor.y + 20 - 1), IM_COL32(40, 50, 30, 255));
             ImGui::GetWindowDrawList()->AddText(ImVec2(20 + 5 + cursor.x + w*j, cursor.y), IM_COL32(255, 255, 255, 255), &(text[0]), &(text[text.size()]));
         }
-        for (int i = 1; i < (int)table.getTableData().size(); i++) {
-            for (int j = 0; j < (int)table.getTableData()[i].getRowData().size(); j++) {
-                std::string text = table.getTableData()[i].getRowData()[j].getValue();
+        for (int i = 1; i < (int)table.getRows().size(); i++) {
+            for (int j = 0; j < (int)table.getRows()[i].getCells().size(); j++) {
+                std::string text = table.getRows()[i].getCells()[j].getValue();
                 ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(20 + cursor.x + w*j, cursor.y + 20*i), ImVec2(20 + cursor.x + w*(j + 1) - 1, cursor.y + 20*(i + 1) - 1), IM_COL32(30, 30, 30, 255));
                 if (ImGui::IsMouseHoveringRect(ImVec2(20 + cursor.x + w*j, cursor.y + 20*i), ImVec2(20 + cursor.x + w*(j + 1) - 1, cursor.y + 20*(i + 1) - 1))) {
                     ImGui::BeginTooltip();
-                    ImGui::TextUnformatted((table.getTableData()[0].getRowData()[j].getValue() + ": " + table.getTableData()[i].getRowData()[j].getDataType()).c_str());
+                    ImGui::TextUnformatted((table.getRows()[0].getCells()[j].getValue() + ": " + table.getRows()[i].getCells()[j].getType()).c_str());
                     ImGui::TextUnformatted(("ROW " + std::to_string(i) + " COL " + std::to_string(j + 1)).c_str());
                     ImGui::EndTooltip();
                 }
@@ -152,32 +152,32 @@ void Interface::EditorResponse() {
     if (READRESPONSE->size() != 0) {
         ImVec2 cursor = ImGui::GetCursorScreenPos();
         Table& table = *((*READRESPONSE)[0]);
-        int w = (ImGui::GetIO().DisplaySize.x * 0.5 - 38) / std::min(10, int(table.getTableData()[0].getRowData().size())); // Soft limit on 10 visible cols
+        int w = (ImGui::GetIO().DisplaySize.x * 0.5 - 38) / std::min(10, int(table.getRows()[0].getCells().size())); // Soft limit on 10 visible cols
         ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(cursor.x, cursor.y), ImVec2(cursor.x + 20 - 1, cursor.y + 20 - 1), IM_COL32(30, 30, 30, 255));
-        for (int j = 1; j < (int)table.getTableData().size(); j++) {
+        for (int j = 1; j < (int)table.getRows().size(); j++) {
             std::string text = std::to_string(j);
             ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(cursor.x, cursor.y + 20*j), ImVec2(cursor.x + 20 - 1, cursor.y + 20*(j + 1) - 1), IM_COL32(30, 30, 30, 255));
             ImGui::GetWindowDrawList()->AddText(ImVec2(((text.length() == 1) ? 5 : 1) + cursor.x, cursor.y + 20*j), IM_COL32(255, 255, 255, 255), &(text[0]), &(text[text.size()]));
         }
-        for (int j = 0; j < (int)table.getTableData()[0].getRowData().size(); j++) {
-            std::string text = table.getTableData()[0].getRowData()[j].getValue();
+        for (int j = 0; j < (int)table.getRows()[0].getCells().size(); j++) {
+            std::string text = table.getRows()[0].getCells()[j].getValue();
             ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(20 + cursor.x + w*j, cursor.y), ImVec2(20 + cursor.x + w*(j + 1) - 1, cursor.y + 20 - 1), IM_COL32(40, 50, 30, 255));
             ImGui::GetWindowDrawList()->AddText(ImVec2(20 + 5 + cursor.x + w*j, cursor.y), IM_COL32(255, 255, 255, 255), &(text[0]), &(text[text.size()]));
         }
-        for (int i = 1; i < (int)table.getTableData().size(); i++) {
-            for (int j = 0; j < (int)table.getTableData()[i].getRowData().size(); j++) {
-                std::string text = table.getTableData()[i].getRowData()[j].getValue();
+        for (int i = 1; i < (int)table.getRows().size(); i++) {
+            for (int j = 0; j < (int)table.getRows()[i].getCells().size(); j++) {
+                std::string text = table.getRows()[i].getCells()[j].getValue();
                 ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(20 + cursor.x + w*j, cursor.y + 20*i), ImVec2(20 + cursor.x + w*(j + 1) - 1, cursor.y + 20*(i + 1) - 1), IM_COL32(30, 30, 30, 255));
                 if (ImGui::IsMouseHoveringRect(ImVec2(20 + cursor.x + w*j, cursor.y + 20*i), ImVec2(20 + cursor.x + w*(j + 1) - 1, cursor.y + 20*(i + 1) - 1))) {
                     ImGui::BeginTooltip();
-                    ImGui::TextUnformatted((table.getTableData()[0].getRowData()[j].getValue() + ": " + table.getTableData()[i].getRowData()[j].getDataType()).c_str());
+                    ImGui::TextUnformatted((table.getRows()[0].getCells()[j].getValue() + ": " + table.getRows()[i].getCells()[j].getType()).c_str());
                     ImGui::TextUnformatted(("ROW " + std::to_string(i) + " COL " + std::to_string(j + 1)).c_str());
                     ImGui::EndTooltip();
                 }
                 ImGui::GetWindowDrawList()->AddText(ImVec2(20 + 5 + cursor.x + w*j, cursor.y + 20*i), IM_COL32(255, 255, 255, 255), &(text[0]), &(text[text.size()]));
             }
         }
-        ImGui::Dummy(ImVec2(0, screenSize.y - 200 + 20*(table.getTableData().size()))); // Dependency on Editor height here
+        ImGui::Dummy(ImVec2(0, screenSize.y - 200 + 20*(table.getRows().size()))); // Dependency on Editor height here
     }
 
     ImGui::End();

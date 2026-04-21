@@ -1,9 +1,7 @@
 #pragma once
-#include "Connection.h"
+#include "../Database/Database.h"
 
-class Delete : virtual public Connection {
+class Delete {
 public:
-    virtual ~Delete() {}
-
-    void run(std::string tableName, std::string row);
+    static void run(Database* database, std::string tableName, std::string row);
 };

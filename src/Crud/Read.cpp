@@ -1,19 +1,19 @@
 #include "Read.h"
 
-Table* Read::run(std::string tableName, std::vector<std::string> headers, std::vector<std::string> where, std::vector<std::string> orderby) {
-    Table* table = this->database->getTable(tableName);
+Table* Read::run(Database* database, std::string tableName, std::vector<std::string> headers, std::vector<std::string> where, std::vector<std::string> orderby) {
+    Table* table = database->getTableByName(tableName);
 
     if (table == nullptr || headers.empty() || where.size() % 3 != 0 || orderby.size() % 2 != 0) return nullptr; // miss empty arguments
     
     // Get columns
     std::vector<Row> dummyrows = {Row(headers)};
-    for (int i = 1; i < (int)table->getTableData().size(); i++) {
+    for (int i = 1; i < (int)table->getRows().size(); i++) {
         int column = 0;
         std::vector<std::string> rowdata;
 
-        for (int j = 0; j < (int)table->getTableData()[i].getRowData().size(); j++) { // Direction sensitive
-            if (table->getTableData()[0].getRowData()[j].getValue() == headers[column]) {
-                rowdata.push_back(table->getTableData()[i].getRowData()[j].getValue());
+        for (int j = 0; j < (int)table->getRows()[i].getCells().size(); j++) { // Direction sensitive
+            if (table->getRows()[0].getCells()[j].getValue() == headers[column]) {
+                rowdata.push_back(table->getRows()[i].getCells()[j].getValue());
 
                 if (column < (int)headers.size() - 1) {
                     column++;
@@ -35,31 +35,31 @@ Table* Read::run(std::string tableName, std::vector<std::string> headers, std::v
         std::string comparator = where[2];
 
         int columnIndex = 0;
-        for (int i = 0; i < (int)table->getTableData()[0].getRowData().size(); i++) {
-            if (table->getTableData()[0].getRowData()[i].getValue() == column) {
+        for (int i = 0; i < (int)table->getRows()[0].getCells().size(); i++) {
+            if (table->getRows()[0].getCells()[i].getValue() == column) {
                 columnIndex = i;
             }
         }
 
         for (int i = 1; i < (int)dummyrows.size(); i++) {
             if (operation == ">") {
-                if (std::stoi(table->getTableData()[i].getRowData()[columnIndex].getValue()) > std::stoi(comparator)) {
+                if (table->getRows()[i].getCells()[columnIndex].getValue() > comparator) {
                     rowdata.push_back(dummyrows[i]);
                 }
             } else if (operation == "<") {
-                if (std::stoi(table->getTableData()[i].getRowData()[columnIndex].getValue()) < std::stoi(comparator)) {
+                if (table->getRows()[i].getCells()[columnIndex].getValue() < comparator) {
                     rowdata.push_back(dummyrows[i]);
                 }
             } else if (operation == ">=") {
-                if (std::stoi(table->getTableData()[i].getRowData()[columnIndex].getValue()) >= std::stoi(comparator)) {
+                if (table->getRows()[i].getCells()[columnIndex].getValue() >= comparator) {
                     rowdata.push_back(dummyrows[i]);
                 }
             } else if (operation == "<=") {
-                if (std::stoi(table->getTableData()[i].getRowData()[columnIndex].getValue()) <= std::stoi(comparator)) {
+                if (table->getRows()[i].getCells()[columnIndex].getValue() <= comparator) {
                     rowdata.push_back(dummyrows[i]);
                 }
             } else if (operation == "=") {
-                if (std::stoi(table->getTableData()[i].getRowData()[columnIndex].getValue()) == std::stoi(comparator)) {
+                if (table->getRows()[i].getCells()[columnIndex].getValue() == comparator) {
                     rowdata.push_back(dummyrows[i]);
                 }
             }
@@ -82,14 +82,14 @@ Table* Read::run(std::string tableName, std::vector<std::string> headers, std::v
         }
 
         if (order == "descending") {
-            sort(dummyrows.begin() + 1, dummyrows.end(), [&columnIndex](Row a, Row b) {return std::stoi(a.getRowData()[columnIndex].getValue()) > std::stoi(b.getRowData()[columnIndex].getValue());});
+            sort(dummyrows.begin() + 1, dummyrows.end(), [&columnIndex](Row a, Row b) {return a.getCells()[columnIndex].getValue() > b.getCells()[columnIndex].getValue();});
         } else if (order == "ascending"){
-            sort(dummyrows.begin() + 1, dummyrows.end(), [&columnIndex](Row a, Row b) {return std::stoi(a.getRowData()[columnIndex].getValue()) < std::stoi(b.getRowData()[columnIndex].getValue());});
+            sort(dummyrows.begin() + 1, dummyrows.end(), [&columnIndex](Row a, Row b) {return a.getCells()[columnIndex].getValue() < b.getCells()[columnIndex].getValue();});
         }
     }
 
     Table* retTable = new Table(headers, {"ANY"}, "RESPONSE");
-    retTable->setTableData(dummyrows);
+    retTable->setRows(dummyrows);
 
     return retTable;
 }

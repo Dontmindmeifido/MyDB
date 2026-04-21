@@ -1,9 +1,7 @@
 #pragma once
-#include "Connection.h"
+#include "../Database/Database.h"
 
-class Create : virtual public Connection {
+class Create {
 public:
-    virtual ~Create();
-
-    void run(std::string tableName, std::vector<std::string> headers, std::vector<std::string> dataTypes);
+    static void run(Database* database, std::string tableName, std::vector<std::string> headers, std::vector<std::string> dataTypes);
 };

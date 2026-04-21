@@ -1,5 +1,8 @@
 #pragma once
-#include "../Crud/Crud.h"
+#include "../Crud/Create.h"
+#include "../Crud/Read.h"
+#include "../Crud/Update.h"
+#include "../Crud/Delete.h"
 
 struct Query {
     std::string action;
@@ -11,5 +14,5 @@ struct Query {
 
     Query();
 
-    Table* runQuery();
+    Table* runQuery(Database* database);
 };

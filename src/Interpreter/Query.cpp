@@ -2,27 +2,25 @@
 
 Query::Query() {}
 
-Table* Query::runQuery() {
-    Crud* crud = Crud::getInstance();
-
+Table* Query::runQuery(Database* database) {
     if (action == "create") {
-        crud->Create::run(table, actionParameters0, actionParameters1);
+        Create::run(database, table, actionParameters0, actionParameters1);
 
         return nullptr;
     } else if (action == "addrow") {
-        crud->Update::run(table, actionParameters0);
+        Update::run(database, table, actionParameters0);
 
         return nullptr;
     } else if (action == "delrow") {
         if (actionParameters0.empty()) {
-            crud->Delete::run(table, "");
+            Delete::run(database, table, "");
         } else  {
-            crud->Delete::run(table, actionParameters0[0]);
+            Delete::run(database, table, actionParameters0[0]);
         }
 
         return nullptr;
     } else if (action == "read") {
-        return crud->Read::run(table, actionParameters0, filterWhereParameters, filterOrderByParameters);
+        return Read::run(database, table, actionParameters0, filterWhereParameters, filterOrderByParameters);
     } else {
         return nullptr;
     }

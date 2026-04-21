@@ -55,10 +55,10 @@ std::vector<std::string> Parser::getSnippet(std::string lastWord, Database& db) 
     std::vector<std::string> checks = Interpreter::getInstance()->getAllTokens();
 
     // Add other tables' data
-    for (auto x: db.getDatabaseData()) {
-        checks.push_back(x.getTableName());
-        for (auto y: x.getTableData()[0].getRowData()) {
-            checks.push_back(y.getValue() + ":" + x.getTableName());
+    for (auto x: db.getTables()) {
+        checks.push_back(x.getName());
+        for (auto y: x.getRows()[0].getCells()) {
+            checks.push_back(y.getValue() + ":" + x.getName());
         }
     }
 

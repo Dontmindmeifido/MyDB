@@ -188,7 +188,7 @@ void Interpreter::runInterpreter(std::string queries, std::vector<Table*>* READR
         }
 
         // Run query
-        Table* queryResponse = query.runQuery();
+        Table* queryResponse = query.runQuery(Database::getInstance());
         if (queryResponse != nullptr) {
             READRESPONSE->push_back(queryResponse);
         }

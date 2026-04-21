@@ -1,9 +1,8 @@
 #pragma once
-#include "Connection.h"
+#include <algorithm>
+#include "../Database/Database.h"
 
-class Read : virtual public Connection {
+class Read {
 public:
-    virtual ~Read() {}
-
-    Table* run(std::string tableName, std::vector<std::string> headers, std::vector<std::string> where, std::vector<std::string> orderby);
+    static Table* run(Database* database, std::string tableName, std::vector<std::string> headers, std::vector<std::string> where, std::vector<std::string> orderby);
 };
